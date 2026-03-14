@@ -2,7 +2,12 @@ WATCH:
     RSS my_blog = OPEN("https://test.com/rss")
 
 EVENTS:
-    EVENT check_update {
+    Event check_update {
         CONSOLE("Hello WORD!");
+        Console("Hello WORD!");
+    }
+
+    EVENT check_update2 {
         CONSOLE("Hello WORD!");
+        Console("Hello WORD!");
     }

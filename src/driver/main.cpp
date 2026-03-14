@@ -5,8 +5,10 @@
 #include "antlr4-runtime.h"
 #include "AMSLexer.h"
 #include "AMSParser.h"    
+#include "supports/caseCaptilizeInputStream.hpp"
+
 #include "ams/compiler/CodeGen.hpp"
-#include "ams/interpreter/Evaluator.hpp" // New Include
+#include "ams/interpreter/Evaluator.hpp" 
 
 using namespace antlr4;
 
@@ -28,7 +30,11 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
-    ANTLRInputStream input(stream);
+    // Using Insted of ANTLRInputStream (Extended Class of ANTLRInputStream)
+    // Defined in ./include/supports/caseCaptilizeInputStream.hpp
+    // Used to make Language Case Independent (Run, run, RUN, ruN are all same)
+    CaseCaptilizeInputStream input(stream);
+
     AMSLexer lexer(&input);
     CommonTokenStream tokens(&lexer);
     AMSParser parser(&tokens);
