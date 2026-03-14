@@ -7,7 +7,7 @@
 #include "AMSParser.h"    
 #include "supports/caseCaptilizeInputStream.hpp"
 
-#include "ams/compiler/CodeGen.hpp"
+#include "ams/compiler/Generator.hpp"
 #include "ams/interpreter/Evaluator.hpp" 
 
 using namespace antlr4;
@@ -60,7 +60,7 @@ int main(int argc, const char* argv[]) {
         std::filesystem::path exePath = inputPath;
         exePath.replace_extension(".exe");
 
-        CodeGen generator(tempCpp);
+        Generator generator(tempCpp);
         generator.visit(tree);
         generator.close();
 

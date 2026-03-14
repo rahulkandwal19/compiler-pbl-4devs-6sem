@@ -1,6 +1,6 @@
-#include "ams/compiler/CodeGen.hpp"
+#include "ams/compiler/Generator.hpp"
 
-antlrcpp::Any CodeGen::visitProgram(AMSParser::ProgramContext *ctx) {
+antlrcpp::Any Generator::visitProgram(AMSParser::ProgramContext *ctx) {
     out << "#include <iostream>\n";
     out << "#include <string>\n\n";
     out << "int main() {\n";
@@ -12,7 +12,7 @@ antlrcpp::Any CodeGen::visitProgram(AMSParser::ProgramContext *ctx) {
     return result;
 }
 
-antlrcpp::Any CodeGen::visitWatchItem(AMSParser::WatchItemContext *ctx) {
+antlrcpp::Any Generator::visitWatchItem(AMSParser::WatchItemContext *ctx) {
     if (!ctx->ID().empty() && ctx->STRING()) {
         std::string resourceType = ctx->ID(0)->getText();
         std::string variableName = ctx->ID(1)->getText();
@@ -22,7 +22,7 @@ antlrcpp::Any CodeGen::visitWatchItem(AMSParser::WatchItemContext *ctx) {
     return nullptr;
 }
 
-antlrcpp::Any CodeGen::visitStatement(AMSParser::StatementContext *ctx) {
+antlrcpp::Any Generator::visitStatement(AMSParser::StatementContext *ctx) {
     if (ctx->STRING()) {
         out << "    std::cout << " << ctx->STRING()->getText() << " << std::endl;\n";
     }

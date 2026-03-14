@@ -3,9 +3,9 @@
 #include <fstream>
 #include <string>
 
-class CodeGen : public AMSBaseVisitor {
+class Generator : public AMSBaseVisitor {
 public:
-    CodeGen(const std::string& outputFile) : out(outputFile) {}
+    Generator(const std::string& outputFile) : out(outputFile) {}
     
     // Ensure these signatures match the .cpp exactly
     virtual antlrcpp::Any visitProgram(AMSParser::ProgramContext *ctx) override;
