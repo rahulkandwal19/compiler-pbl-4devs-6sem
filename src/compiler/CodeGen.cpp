@@ -1,30 +1,33 @@
-#include "ams/compiler/Generator.hpp"
+#include "core/compiler/Generator.hpp"
 
-antlrcpp::Any Generator::visitProgram(AMSParser::ProgramContext *ctx) {
+Generator::Generator(const std::string& outputFile) : out(outputFile) {}
+
+Generator::~Generator() {
+    if (out.is_open()) out.close();
+}
+
+void Generator::generate(std::shared_ptr<ProgramNode> program) {
+    program->accept(this);
+}
+
+void Generator::visit(ProgramNode* node) {
     out << "#include <iostream>\n";
     out << "#include <string>\n\n";
     out << "int main() {\n";
     
-    antlrcpp::Any result = visitChildren(ctx);
+    for (const auto& stmt : node->statements) {
+        stmt->accept(this);
+    }
     
     out << "    return 0;\n";
     out << "}\n";
-    return result;
 }
 
-antlrcpp::Any Generator::visitWatchItem(AMSParser::WatchItemContext *ctx) {
-    if (!ctx->ID().empty() && ctx->STRING()) {
-        std::string resourceType = ctx->ID(0)->getText();
-        std::string variableName = ctx->ID(1)->getText();
-        std::string url = ctx->STRING()->getText();
-        out << "    std::cout << \"[System] Initializing " << resourceType << " Watcher for: " << variableName << "\" << std::endl;\n";
-    }
-    return nullptr;
+void Generator::visit(WatchNode* node) {
+    out << " std::cout << \"[System] Initializing " << node->resourceType 
+        << " Watcher for: " << node->variableName << "\" << std::endl;\n";
 }
 
-antlrcpp::Any Generator::visitStatement(AMSParser::StatementContext *ctx) {
-    if (ctx->STRING()) {
-        out << "    std::cout << " << ctx->STRING()->getText() << " << std::endl;\n";
-    }
-    return nullptr; 
+void Generator::visit(PrintNode* node) {
+    out << "    std::cout << \"" << node->text << "\" << std::endl;\n";
 }

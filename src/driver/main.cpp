@@ -2,13 +2,17 @@
 #include <fstream>
 #include <filesystem>
 #include <string>
+
 #include "antlr4-runtime.h"
 #include "AMSLexer.h"
-#include "AMSParser.h"    
-#include "supports/caseCaptilizeInputStream.hpp"
+#include "AMSParser.h"   
 
-#include "ams/compiler/Generator.hpp"
-#include "ams/interpreter/Evaluator.hpp" 
+#include "core/supports/caseCaptilizeInputStream.hpp"
+#include "core/builder/AST.hpp"       
+#include "core/builder/Builder.hpp"
+#include "core/compiler/Generator.hpp"
+#include "core/interpreter/Evaluator.hpp" 
+
 
 using namespace antlr4;
 
@@ -40,19 +44,23 @@ int main(int argc, const char* argv[]) {
     AMSParser parser(&tokens);
 
     // Build The Parse Tree of Source Code Using ANTLR4
-    tree::ParseTree* tree = parser.program();
+    tree::ParseTree* parseTree = parser.program();
 
     if (parser.getNumberOfSyntaxErrors() > 0) {
         std::cerr << "Syntax Error!" << std::endl;
         return 1;
     }
 
+    // Build The Abstract Syntax Tree of  Code Using IR Builder
+    Builder astBuilder;
+    auto ast = std::any_cast<std::shared_ptr<ProgramNode>>(astBuilder.visit(parseTree));
+
     // Execute ParseTree Based on Selected Mode of Execution
     if (mode == "run") {
         //Intrepeted Execution Mode : For Prototyping & Testing
         std::cout << "[AMS ENGINE Working : Intrepeted Mode (Live Execution)]" << std::endl;
         Evaluator interpreter;
-        interpreter.visit(tree); 
+        interpreter.evaluate(ast); 
     } 
     else if (mode == "build") {
         //Compiled Execution Mode : For Production Deployment
@@ -61,7 +69,7 @@ int main(int argc, const char* argv[]) {
         exePath.replace_extension(".exe");
 
         Generator generator(tempCpp);
-        generator.visit(tree);
+        generator.generate(ast);
         generator.close();
 
         // Compile to Executable
