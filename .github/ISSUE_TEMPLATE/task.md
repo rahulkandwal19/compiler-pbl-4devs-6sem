@@ -1,7 +1,8 @@
 ---
-ISSUE: "Task"  
-Title: "[Task] Title Text"  
-Labels: task, work, backlog, urgent, etc
+name: "Task"
+about: A Defined task to be done on project.
+title: "[TASK] Title Text"
+labels: urgent, quality, carefully, etc
 ---
 
 ## Description
