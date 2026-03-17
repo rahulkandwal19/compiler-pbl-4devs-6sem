@@ -1,15 +1,45 @@
+//######################## AutomonScript Grammer #############################
+
 grammar AMS;
 
-program : watchSection eventSection EOF ;
+//############################### LEXER ######################################
 
-watchSection : 'WATCH:' watchItem* ;
-watchItem    : ID ID '=' 'OPEN' '(' STRING ')' ;
+//------------------------------ KEYWORDS ------------------------------------
+// PROGRAM SECTIONS
+SOURCES : 'SOURCES:'; 
+SOURCE  : 'SOURCE';
+EVENTS  : 'EVENTS:';
+EVENT   : 'EVENT';
+ 
+OPEN    : 'OPEN';
+CONSOLE : 'CONSOLE';
+//----------------------------------------------------------------------------
+ID      : [A-Z_][A-Z0-9_]*;
+STRING  : '"' (~["\r\n])* '"';
+//----------------------------------------------------------------------------
+LBRACE  : '{';
+RBRACE  : '}';
+LPAREN  : '(';
+RPAREN  : ')';
+EQ      : '=';
+SEMI    : ';';
+//----------------------------------------------------------------------------
+WS      : [ \t\r\n]+ -> skip;
+//----------------------------------------------------------------------------
 
-eventSection : 'EVENTS:' eventDef* ;
-eventDef     : 'EVENT' ID '{' statement* '}' ;
 
-statement    : 'CONSOLE' '(' STRING ')' ';' ;
+//############################### PARSER #####################################
 
-ID     : [a-zA-Z_][a-zA-Z0-9_]* ;
-STRING : '"' (~["\r\n])* '"' ;
-WS     : [ \t\r\n]+ -> skip ;
+//----------------------------------------------------------------------------
+program 
+    : sourcesBlock? eventsBlock? EOF 
+    ;
+//----------------------------------------------------------------------------
+sourcesBlock : SOURCES sourceDefination* ;
+sourceDefination : SOURCE ID LBRACE sourceItem* RBRACE ;
+sourceItem    : ID ID EQ OPEN LPAREN STRING RPAREN ;
+//----------------------------------------------------------------------------
+eventsBlock : EVENTS eventDefination* ;
+eventDefination : EVENT ID LBRACE eventItem* RBRACE ;
+eventItem    : CONSOLE LPAREN STRING RPAREN SEMI ;
+//----------------------------------------------------------------------------

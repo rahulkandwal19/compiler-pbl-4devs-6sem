@@ -23,11 +23,6 @@ void Generator::visit(ProgramNode* node) {
     out << "}\n";
 }
 
-void Generator::visit(WatchNode* node) {
-    out << " std::cout << \"[System] Initializing " << node->resourceType 
-        << " Watcher for: " << node->variableName << "\" << std::endl;\n";
-}
-
 void Generator::visit(PrintNode* node) {
     out << "    std::cout << \"" << node->text << "\" << std::endl;\n";
 }

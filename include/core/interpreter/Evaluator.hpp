@@ -14,9 +14,18 @@ public:
         }
     }
 
-    void visit(WatchNode* node) override {
+    void visit(SourceDefNode* node) override {
+        std::cout << "[System] Processing Source Block: " << node->sourceName << std::endl;
+
+        for (const auto& item : node->items) {
+            item->accept(this);
+        }
+    }
+
+    void visit(SourceItemNode* node) override {
         std::cout << "[System] Initializing " << node->resourceType 
-                  << " Watcher for: " << node->variableName << std::endl;
+                  << " connection for: " << node->variableName 
+                  << " at URL: " << node->url << std::endl;
     }
 
     void visit(PrintNode* node) override {
@@ -25,7 +34,6 @@ public:
 
     void visit(EventNode* node) override {
         std::cout << "[System] Registering Event: " << node->eventName << std::endl;
-        // For now, let's just execute the statements inside it immediately to test
         for (const auto& stmt : node->statements) {
             stmt->accept(this);
         }

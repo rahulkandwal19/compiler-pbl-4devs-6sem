@@ -14,7 +14,14 @@ set(GEN_DIR "${CMAKE_SOURCE_DIR}/generated")
 
 # Generate Language Files Form AMS.g4 (ANTLR4 Grammer File)
 execute_process(
-    COMMAND java -jar ${ANTLR_JAR} -Dlanguage=Cpp -visitor -no-listener -o ${GEN_DIR} ${CMAKE_SOURCE_DIR}/grammar/AMS.g4
+    COMMAND java -jar ${ANTLR_JAR} 
+            -Dlanguage=Cpp 
+            -visitor 
+            -no-listener 
+            -lib "${CMAKE_SOURCE_DIR}/grammar" 
+            -o "${GEN_DIR}" 
+            "${CMAKE_SOURCE_DIR}/grammar/AMS.g4"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/grammar"
 )
 
 # Define Source Files

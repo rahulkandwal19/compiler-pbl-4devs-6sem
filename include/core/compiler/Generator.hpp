@@ -13,21 +13,34 @@ public:
     void close() { if (out.is_open()) out.close(); }
 
     void visit(ProgramNode* node) override;
-    void visit(WatchNode* node) override;
     void visit(PrintNode* node) override;
 
-    void visit(EventNode* node) override { // (or Generator::visit in the .cpp)
+    void visit(EventNode* node) override {
         out << "    // Event: " << node->eventName << "\n";
         out << "    auto " << node->eventName << " = []() {\n";
         
-        // Generate the C++ code for everything inside the event
+
         for (const auto& stmt : node->statements) {
             stmt->accept(this); 
         }
         
         out << "    };\n";
-        // Optionally call it immediately for testing:
+
         out << "    " << node->eventName << "();\n\n";
+    }
+
+    void visit(SourceDefNode* node) override {
+        out << "    // Source Block: " << node->sourceName << "\n";
+        
+        for (const auto& item : node->items) {
+            item->accept(this); 
+        }
+    }
+
+    void visit(SourceItemNode* node) override {
+        out << "    // Auto-generated Source Item: " << node->variableName << "\n";
+        out << "    std::string " << node->variableName << "_type = \"" << node->resourceType << "\";\n";
+        out << "    std::string " << node->variableName << "_url = \"" << node->url << "\";\n";
     }
 
 private:

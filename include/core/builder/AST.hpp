@@ -3,40 +3,51 @@
 #include <vector>
 #include <memory>
 
-// Forward declarations for the Visitor
+//Forward declarations for the Visitor
 class ASTNode;
 class ProgramNode;
-class WatchNode;
 class PrintNode;
 class EventNode;
+class SourceDefNode; 
+class SourceItemNode;
 
-// The pure virtual Visitor interface for your backends
+//The pure virtual Visitor interface for your backends
 class ASTVisitor {
 public:
     virtual void visit(ProgramNode* node) = 0;
-    virtual void visit(WatchNode* node) = 0;
     virtual void visit(PrintNode* node) = 0;
     virtual void visit(EventNode* node) = 0;
+    virtual void visit(SourceDefNode* node) = 0;
+    virtual void visit(SourceItemNode* node) = 0;
 };
 
-// Base AST Node
+//Base AST Node
 class ASTNode {
 public:
     virtual ~ASTNode() = default;
-    // Every node must accept a visitor
     virtual void accept(ASTVisitor* visitor) = 0; 
 };
 
 
 //Node Implementations
 
-class WatchNode : public ASTNode {
+class SourceDefNode : public ASTNode {
+public:
+    std::string sourceName;
+    std::vector<std::shared_ptr<ASTNode>> items;
+
+    SourceDefNode(std::string name) : sourceName(name) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class SourceItemNode : public ASTNode {
 public:
     std::string resourceType;
     std::string variableName;
     std::string url;
 
-    WatchNode(std::string type, std::string name, std::string u) 
+    SourceItemNode(std::string type, std::string name, std::string u) 
         : resourceType(type), variableName(name), url(u) {}
 
     void accept(ASTVisitor* visitor) override { visitor->visit(this); }

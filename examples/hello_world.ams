@@ -1,5 +1,8 @@
-WATCH:
-    RSS my_blog = OPEN("https://test.com/rss")
+SOURCES:
+    SOURCE XYZ{
+        RSS my_blog = OPEN("https://test.com/rss")
+    }
+    
 
 EVENTS:
     Event check_update {
