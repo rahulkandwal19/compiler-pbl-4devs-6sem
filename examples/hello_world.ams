@@ -1,16 +1,27 @@
+GLOBAL:
+    IMPORT "xyz";
+    PRINTLN("Hello! WORD")
+
 SOURCES:
-    SOURCE XYZ{
-        RSS my_blog = OPEN("https://test.com/rss")
-    }
+    SOURCE Hello_L 
+        PRINTLN("Hello! ","From SOURCE") 
+    ;
     
-
 EVENTS:
-    Event check_update {
-        CONSOLE("Hello WORD!");
-        Console("Hello WORD!");
-    }
+    Event Hello_E
+       PRINTLN("Hello! ","From EVENT")
+    ;
 
-    EVENT check_update2 {
-        CONSOLE("Hello WORD!");
-        Console("Hello WORD!");
-    }
+OBSERVERS:
+    OBSERVER Hello_O 
+        INT X = 1
+        PRINTLN("Hello! ","From OBSERVER", X);
+        X = 2
+        PRINTLN("Hello! ","From OBSERVER", 2)
+    ;
+
+FUNCTIONS:
+
+    FUNCTION print_hello()
+        PRINTLN("Hello WORD!")
+    ;

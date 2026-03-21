@@ -10,8 +10,7 @@
 #include "core/supports/caseCaptilizeInputStream.hpp"
 #include "core/builder/AST.hpp"       
 #include "core/builder/Builder.hpp"
-#include "core/compiler/Generator.hpp"
-#include "core/interpreter/Evaluator.hpp" 
+#include "core/compiler/Generator.hpp" 
 
 
 using namespace antlr4;
@@ -19,9 +18,12 @@ using namespace antlr4;
 int main(int argc, const char* argv[]) {
     // Help Verbose for the dempnstration of Usage Options Available in AMS-Lang Engine 
     if (argc < 3) {
-        std::cout << "AutomonScript Language Engine Usage:" << std::endl;
-        std::cout << "ams run <file.ams>   (Interpretation for Rapid Protopyping)" << std::endl;
-        std::cout << "ams build <file.ams> (Compile for Production Executable)" << std::endl;
+        std::cout << "AutomonScript Language Engine Usage:" << std::endl<<std::endl;
+        std::cout << "******************** Executing .ams Programes ***************" << std::endl;
+        std::cout << "ams build <file.ams> (Compile the Code to Executable)" << std::endl;
+        std::cout << "**************** View AMS Engine Language Working ***********" << std::endl;
+        std::cout << "ams lexer <file.ams> (View Tokens At LEXICAL ANALYSIS)" << std::endl;
+        std::cout << "ams parser <file.ams> (View ParseTree At SYNTAX ANALYSIS)" << std::endl;
         return 1;
     }
 
@@ -55,15 +57,9 @@ int main(int argc, const char* argv[]) {
     Builder astBuilder;
     auto ast = std::any_cast<std::shared_ptr<ProgramNode>>(astBuilder.visit(parseTree));
 
-    // Execute ParseTree Based on Selected Mode of Execution
-    if (mode == "run") {
-        //Intrepeted Execution Mode : For Prototyping & Testing
-        std::cout << "[AMS ENGINE Working : Intrepeted Mode (Live Execution)]" << std::endl;
-        Evaluator interpreter;
-        interpreter.evaluate(ast); 
-    } 
-    else if (mode == "build") {
-        //Compiled Execution Mode : For Production Deployment
+  
+    if (mode == "build") {
+        //Compiled :  Produces an executable file
         std::string tempCpp = "temp_output.cpp";
         std::filesystem::path exePath = inputPath;
         exePath.replace_extension(".exe");
@@ -83,9 +79,22 @@ int main(int argc, const char* argv[]) {
             std::cerr << "[ERROR] Compilation failed." << std::endl;
         }
     }
+    else if(mode=="lexer" || mode=="parser"){
+        if(mode == "lexer"){
+            tokens.fill();
+            for (auto token : tokens.getTokens()) {
+                std::cout << token->toString() << std::endl;
+            }
+        }
+
+        else if(mode == "parser"){
+            std::cout << "Program Parse Tree: " << std::endl;
+            std::cout << parseTree->toStringTree(&parser) << std::endl;
+        }
+    }
     else {
         //Unknown Execution Mode : ERROR! Verbose
-        std::cerr << "Unknown mode: " << mode << ". Use 'run' or 'build'." << std::endl;
+        std::cerr << "Unknown mode: " << mode << ". Use 'build'." << std::endl;
         return 1;
     }
 

@@ -8,10 +8,10 @@ It processes `.ams` scripts into efficient high peformance deployable executable
 
 ### Repository Structure
 * **`/grammar`**: Contains AMS.g4, the ANTLR4 grammar definition.
-* **`/include/ams/runtime`**: Core C++17 headers for Language Runtime.
-* **`/include/ams/compiler`**: Provides asm build (Compiled Execution)
-* **`/include/ams/interpretor`**: Provides asm run (Interpreted Execution)
-* **`/src/compiler`**: Implementation of the AST Visitor.
+* **`/include/core/builder`**: Core C++17 headers for Language Runtime.
+* **`/include/core/compiler`**: Provides asm build (Compiled Execution)
+* **`/include/runtime`**: Core C++17 headers for Language Runtime.
+* **`/include/stdlib`**: Core C++17 headers for Language Runtime.
 * **`/src/driver`**: Source for the ams CLI tool that manages the build-and-run lifecycle.
 
 ## Setup of ams-lang project Enviroment 
@@ -29,11 +29,8 @@ It processes `.ams` scripts into efficient high peformance deployable executable
     ```powershell
     ams 
     ```
-+ Execute AutomonScript Code in Intrepeted Mode
-    ```powershell
-    ams run .\examples\hello_world.ams
     ```
-+ Execute AutomonScript Code in Compiled Mode
++ Builds AutomonScript Code in Compi
     ```powershell
     ams build .\examples\hello_world.ams
     .\examples\hello_world.exe   

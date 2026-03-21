@@ -16,12 +16,10 @@ ams-lang/                # Project (ROOT)
 │   ├── core/            # CORE Language Engine
 │   │   ├── builder/     # Intermediate AST Builder 
 │   │   ├── compiler/    # Language Compiler Logic 
-│   │   ├── interpreter/ # Language Interpreter Logic 
 │   │   ├── supports/    # Language Support Logic 
 │   │   └── runtime/     # Language Runtime Library 
 │   └── stdlib/          # Standard Library & Utils  
 └── src/                 # Implementation files
-    ├── compiler/        # Compiler Code Generator
     └── driver/          # CLI Entry point (main.cpp)
 ```
 ## Directory Overview
@@ -42,9 +40,8 @@ These folders contain pre-built or auto-generated files that are required by the
 ### 3. (root)/include/{Core Language Implementation}
 It contains the core language implementation, which converts the language into executable target code.
 
-* `include/core/builder` Common AST Builder.
+* `include/core/builder` &nbsp; AST Builder.
 * `include/core/compiler` Compiler Generator. 
-* `include/core/interpreter` Interpreter Evaluator.
 * `include/core/supports` Support functions for the engine. 
 
 ### 4. (root)/include/runtime/{Runtime Engine Files}
@@ -58,7 +55,6 @@ It contains the implementation for the bundled libraries of the base language, p
     * `/utils` : Provides system utility functions.
 
 ### 6. (root)/src/
-This is the entry point for the language engine (compiler and interpreter). It converts `.ams` files into an executable build or interprets them directly.
+This is the entry point for the language engine (compiler). It converts `.ams` files into an executable build or interprets them directly.
 
-* `./compiler` Implements CodeGen to generate target code using the Builder and Generator from `./include/core`.
 * `./driver` The entry point of the AMS language engine, providing CLI tools to use the language.
