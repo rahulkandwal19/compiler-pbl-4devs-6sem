@@ -27,6 +27,11 @@ class AssignmentNode;
 
 class UnaryOperatorNode;
 class BinaryOperatorNode;
+
+class IfStatementNode;
+class WhileStatementNode;
+class ForStatementNode;
+class ReturnStatementNode;
 //############################## Visitor Interfacs #####################################
 class ASTVisitor {
 public:
@@ -54,6 +59,11 @@ public:
 
     virtual void visit(UnaryOperatorNode* node) = 0;
     virtual void visit(BinaryOperatorNode* node) = 0;
+
+    virtual void visit(IfStatementNode* node) = 0;
+    virtual void visit(WhileStatementNode* node) = 0;
+    virtual void visit(ForStatementNode* node) = 0;
+    virtual void visit(ReturnStatementNode* node) = 0;
 };
 //############################# AST Node Base Class ####################################
 class ASTNode {
@@ -209,6 +219,59 @@ public:
     void accept(ASTVisitor* visitor) override { 
         visitor->visit(this); 
     }
+};
+
+//------------------------------- CONTROL FLOW NODES -----------------------------------
+
+class IfStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> condition;
+    std::vector<std::shared_ptr<ASTNode>> ifBody;
+    std::vector<std::shared_ptr<ASTNode>> elseBody;
+
+    IfStatementNode(std::shared_ptr<ASTNode> cond = nullptr, 
+                     std::vector<std::shared_ptr<ASTNode>> ifBlock = {},
+                     std::vector<std::shared_ptr<ASTNode>> elseBlock = {})
+        : condition(std::move(cond)), ifBody(std::move(ifBlock)), elseBody(std::move(elseBlock)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class WhileStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> condition;
+    std::vector<std::shared_ptr<ASTNode>> body;
+
+    WhileStatementNode(std::shared_ptr<ASTNode> cond = nullptr, std::vector<std::shared_ptr<ASTNode>> b = {})
+        : condition(std::move(cond)), body(std::move(b)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class ForStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> initialization;
+    std::shared_ptr<ASTNode> condition;
+    std::shared_ptr<ASTNode> increment;
+    std::vector<std::shared_ptr<ASTNode>> body;
+
+    ForStatementNode(std::shared_ptr<ASTNode> init = nullptr,
+                      std::shared_ptr<ASTNode> cond = nullptr,
+                      std::shared_ptr<ASTNode> inc = nullptr,
+                      std::vector<std::shared_ptr<ASTNode>> b = {})
+        : initialization(std::move(init)), condition(std::move(cond)), 
+          increment(std::move(inc)), body(std::move(b)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class ReturnStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> returnValue;
+
+    ReturnStatementNode(std::shared_ptr<ASTNode> val = nullptr) : returnValue(std::move(val)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 };
 
 //--------------------------------------------------------------------------------------

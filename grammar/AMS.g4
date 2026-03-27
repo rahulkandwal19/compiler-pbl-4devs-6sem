@@ -26,6 +26,13 @@ FLOAT  : 'FLOAT';
 STRING : 'STRING';
 BOOL   : 'BOOL';
 VOID   : 'VOID';
+
+// CONTROL FLOW
+IF     : 'IF';
+ELSE   : 'ELSE';
+WHILE  : 'WHILE';
+FOR    : 'FOR';
+RETURN : 'RETURN';
 //----------------------------------------------------------------------------
 LBRACE  : '{';
 RBRACE  : '}';
@@ -94,11 +101,21 @@ statement
     : (variableDeclaration
       | assignment
       | functionCall
+      | ifStatement
+      | whileStatement
+      | forStatement
+      | returnStatement
       ) eos
     ;
 
 variableDeclaration : dataType ID (EQUAL expression)? ;
 assignment          : ID EQUAL expression ;
+
+// Control flow statements - embedded in statement list
+ifStatement        : IF expression ;
+whileStatement      : WHILE expression ;
+forStatement        : FOR LPAREN variableDeclaration SEMICOL expression SEMICOL assignment RPAREN ;
+returnStatement     : RETURN expression? ;
 
 arguments           : expression (COMMA expression)* ;
 //----------------------------------------------------------------------------

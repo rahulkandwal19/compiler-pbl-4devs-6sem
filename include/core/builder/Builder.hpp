@@ -190,6 +190,10 @@ public:
         if (ctx->functionCall()) return visit(ctx->functionCall());
         if (ctx->variableDeclaration()) return visit(ctx->variableDeclaration());
         if (ctx->assignment()) return visit(ctx->assignment());
+        if (ctx->ifStatement()) return visit(ctx->ifStatement());
+        if (ctx->whileStatement()) return visit(ctx->whileStatement());
+        if (ctx->forStatement()) return visit(ctx->forStatement());
+        if (ctx->returnStatement()) return visit(ctx->returnStatement());
         return antlrcpp::Any();
     }
 
@@ -208,6 +212,32 @@ public:
         std::string name = ctx->ID()->getText();
         auto val = get_node<ASTNode>(visit(ctx->expression()));
         return std::static_pointer_cast<ASTNode>(std::make_shared<AssignmentNode>(name, val));
+    }
+
+    //##################################### Control Flow Statements  #################################
+    virtual antlrcpp::Any visitIfStatement(AMSParser::IfStatementContext *ctx) override {
+        auto condition = get_node<ASTNode>(visit(ctx->expression()));
+        return std::static_pointer_cast<ASTNode>(std::make_shared<IfStatementNode>(condition, std::vector<std::shared_ptr<ASTNode>>(), std::vector<std::shared_ptr<ASTNode>>()));
+    }
+
+    virtual antlrcpp::Any visitWhileStatement(AMSParser::WhileStatementContext *ctx) override {
+        auto condition = get_node<ASTNode>(visit(ctx->expression()));
+        return std::static_pointer_cast<ASTNode>(std::make_shared<WhileStatementNode>(condition, std::vector<std::shared_ptr<ASTNode>>()));
+    }
+
+    virtual antlrcpp::Any visitForStatement(AMSParser::ForStatementContext *ctx) override {
+        auto init = get_node<ASTNode>(visit(ctx->variableDeclaration()));
+        auto cond = get_node<ASTNode>(visit(ctx->expression()));
+        auto inc = get_node<ASTNode>(visit(ctx->assignment()));
+        return std::static_pointer_cast<ASTNode>(std::make_shared<ForStatementNode>(init, cond, inc, std::vector<std::shared_ptr<ASTNode>>()));
+    }
+
+    virtual antlrcpp::Any visitReturnStatement(AMSParser::ReturnStatementContext *ctx) override {
+        std::shared_ptr<ASTNode> retVal = nullptr;
+        if (ctx->expression()) {
+            retVal = get_node<ASTNode>(visit(ctx->expression()));
+        }
+        return std::static_pointer_cast<ASTNode>(std::make_shared<ReturnStatementNode>(retVal));
     }
 
     //##################################### Pass Through Visitors  ####################################
