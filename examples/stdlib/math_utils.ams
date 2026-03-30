@@ -1,0 +1,3 @@
+GLOBAL:
+    INT math_version = 1
+    PRINTLN("Math utils loaded!")

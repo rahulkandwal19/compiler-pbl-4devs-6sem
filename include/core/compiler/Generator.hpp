@@ -4,6 +4,11 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <filesystem>
+#include <set>
+#include <vector>
+
+std::string readFileContent(const std::string& filepath);
 
 //::::::::::::::::::::::::::::::::: Helpers ::::::::::::::::::::::::::::::::::::
 // Helper to keep C++ names in sync with capitalized Lexer
@@ -12,10 +17,55 @@ std::string normalize(std::string name) {
     return name;
 }
 
+std::string readFileContent(const std::string& filepath) {
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        std::cerr << "[WARNING] Could not open file: " << filepath << "\n";
+        return "";
+    }
+    std::string content((std::istreambuf_iterator<char>(file)),
+                       std::istreambuf_iterator<char>());
+    return content;
+}
+
+// Helper to resolve module file path
+std::string resolveModulePath(const std::string& moduleName, const std::string& currentFile) {
+    namespace fs = std::filesystem;
+    
+    fs::path currentPath(currentFile);
+    fs::path baseDir = currentPath.parent_path();
+    
+    std::vector<std::string> extensions = {".ams", ".h", ".hpp", ""};
+    std::vector<std::string> searchDirs = {
+        baseDir.string(), 
+        baseDir.string() + "/stdlib/",
+        baseDir.string() + "/modules/",
+        "examples/stdlib/",
+        "stdlib/",
+        "."
+    };
+    
+    for (const auto& dir : searchDirs) {
+        if (dir.empty()) continue;
+        for (const auto& ext : extensions) {
+            std::string fullPathStr = dir + "/" + moduleName + ext;
+            fs::path fullPath(fullPathStr);
+            if (fs::exists(fullPath)) {
+                return fullPath.string();
+            }
+        }
+    }
+    return moduleName;
+}
+
+// Function to compile imported module
+void compileModule(const std::string& modulePath, std::set<std::string>& compiled);
+
 //::::::::::::::::::::::::::::::::: Generator ::::::::::::::::::::::::::::::::::
 class Generator : public ASTVisitor {
 public:
-    Generator(const std::string& outputFile) {
+    Generator(const std::string& outputFile, const std::string& inputFile = "") 
+        : inputPath(inputFile) {
         out.open(outputFile);
         if (!out.is_open()) {
             std::cerr << "[ERROR] Could not open output file: " << outputFile << "\n";
@@ -106,11 +156,41 @@ public:
     }
 
     void visit(ImportNode* node) override {
-        out << "    // Import: " << node->moduleName << "\n";
+        if (importedModules.count(node->moduleName)) {
+            return;
+        }
+        importedModules.insert(node->moduleName);
+        
+        std::string resolvedPath = resolveModulePath(node->moduleName, inputPath);
+        
+        if (!resolvedPath.empty() && resolvedPath != node->moduleName) {
+            std::string content = readFileContent(resolvedPath);
+            if (!content.empty()) {
+                out << "    // ===== Import: " << node->moduleName << " =====\n";
+                out << "    // From: " << resolvedPath << "\n";
+            }
+        } else {
+            out << "    // Import: " << node->moduleName << " (module not found)\n";
+        }
     }
 
     void visit(MergeNode* node) override {
-        out << "    // Merge: " << node->targetName << "\n";
+        if (importedModules.count(node->targetName)) {
+            return;
+        }
+        importedModules.insert(node->targetName);
+        
+        std::string resolvedPath = resolveModulePath(node->targetName, inputPath);
+        
+        if (!resolvedPath.empty() && resolvedPath != node->targetName) {
+            std::string content = readFileContent(resolvedPath);
+            if (!content.empty()) {
+                out << "    // ===== Merge: " << node->targetName << " =====\n";
+                out << "    // From: " << resolvedPath << "\n";
+            }
+        } else {
+            out << "    // Merge: " << node->targetName << " (module not found)\n";
+        }
     }
 
     //####################################### Source Definations  ##########################################
@@ -269,4 +349,6 @@ public:
 
 private:
     std::ofstream out;
+    std::string inputPath;
+    std::set<std::string> importedModules;
 };
