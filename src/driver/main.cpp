@@ -75,13 +75,13 @@ int main(int argc, const char* argv[]) {
         generator.generate(ast);
         generator.close();
 
-        // Compile to Executable
-        std::string compileCmd = "g++ " + tempCpp + " -o \"" + exePath.string() + "\"" + flag;
+        // Compile to Executable with optimization flags
+        std::string compileCmd = "g++ -O2 -std=c++17 " + tempCpp + " -o \"" + exePath.string() + "\"" + flag;
 
         if (std::system(compileCmd.c_str()) == 0) {
             // Clean up intermediate code
             std::filesystem::remove(tempCpp); 
-            std::cout << "[SUCCESS] Created: " << exePath.filename().string() << std::endl;
+            std::cout << "[SUCCESS] Created (optimized): " << exePath.filename().string() << std::endl;
         } else {
             std::cerr << "[ERROR] Compilation failed." << std::endl;
         }
