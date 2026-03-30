@@ -1,0 +1,5 @@
+GLOBAL:
+    INT x = "hello"
+    INT y
+    y = x + 10
+    PRINTLN(y)
