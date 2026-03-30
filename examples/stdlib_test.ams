@@ -1,0 +1,11 @@
+GLOBAL:
+    INT x = 16
+    PRINTLN("Testing Math Functions")
+    PRINTLN("Square root of 16: ", SQRT(16))
+    PRINTLN("Absolute value of -5: ", ABS(-5))
+    PRINTLN("Min of 10,20: ", MIN(10, 20))
+    PRINTLN("Max of 10,20: ", MAX(10, 20))
+    PRINTLN("Testing String Functions")
+    PRINTLN("Length of Hello: ", LENGTH("Hello"))
+    PRINTLN("Lower case: ", STRLOWER("HELLO"))
+    PRINTLN("Upper case: ", STRUPPER("hello"))

@@ -27,8 +27,11 @@ public:
     //######################################### Code Generator #############################################
     void generate(std::shared_ptr<ProgramNode> program) {
         out << "#include <iostream>\n#include <string>\n#include <functional>\n\n";
-        out << "#include <cmath>\n\n";
-        out << "#include \"include/stdlib/io/console.hpp\"\n\n";
+        out << "#include <cmath>\n#include <cstdlib>\n#include <ctime>\n\n";
+        out << "#include \"include/stdlib/io/console.hpp\"\n";
+        out << "#include \"include/stdlib/math.hpp\"\n";
+        out << "#include \"include/stdlib/string.hpp\"\n";
+        out << "#include \"include/stdlib/file.hpp\"\n\n";
         
         out << "int main() {\n";
         
