@@ -1,0 +1,17 @@
+GLOBAL:
+    INT counter = 0
+
+SOURCES:
+    SOURCE SensorA AT(30 MINUTES)
+        INT value = 10
+    ;
+
+EVENTS:
+    EVENT Alert EVERY(5 MINUTES)
+        INT temp = 100
+    ;
+
+OBSERVERS:
+    OBSERVER Monitor CRON("0 * * * *")
+        INT status = 1
+    ;

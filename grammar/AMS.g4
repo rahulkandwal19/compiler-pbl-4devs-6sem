@@ -16,6 +16,16 @@ OBSERVER  : 'OBSERVER';
 FUNCTIONS : 'FUNCTIONS';
 FUNCTION  : 'FUNCTION';
 
+// SCHEDULING
+AT      : 'AT';
+EVERY   : 'EVERY';
+CRON    : 'CRON';
+MINUTES : 'MINUTES';
+HOURS   : 'HOURS';
+DAYS    : 'DAYS';
+WEEKS   : 'WEEKS';
+SECONDS : 'SECONDS';
+
 // GLOBAL SECTION
 IMPORT : 'IMPORT';
 MERGE  : 'MERGE';
@@ -26,6 +36,13 @@ FLOAT  : 'FLOAT';
 STRING : 'STRING';
 BOOL   : 'BOOL';
 VOID   : 'VOID';
+
+// CONTROL FLOW
+IF     : 'IF';
+ELSE   : 'ELSE';
+WHILE  : 'WHILE';
+FOR    : 'FOR';
+RETURN : 'RETURN';
 //----------------------------------------------------------------------------
 LBRACE  : '{';
 RBRACE  : '}';
@@ -94,11 +111,21 @@ statement
     : (variableDeclaration
       | assignment
       | functionCall
+      | ifStatement
+      | whileStatement
+      | forStatement
+      | returnStatement
       ) eos
     ;
 
 variableDeclaration : dataType ID (EQUAL expression)? ;
 assignment          : ID EQUAL expression ;
+
+// Control flow statements - embedded in statement list
+ifStatement        : IF expression ;
+whileStatement      : WHILE expression ;
+forStatement        : FOR LPAREN variableDeclaration SEMICOL expression SEMICOL assignment RPAREN ;
+returnStatement     : RETURN expression? ;
 
 arguments           : expression (COMMA expression)* ;
 //----------------------------------------------------------------------------
@@ -133,33 +160,48 @@ mergeStatement  : MERGE STRING_L eos;
 //----------------------------------------------------------------------------
 // Sources Section Structure 
 sourcesSection : SOURCES COL eos sourceDefinition* ;
-sourceDefinition : SOURCE ID sourceScheduleStatement LBRACE eos sourceItem* RBRACE eos
-                 | SOURCE ID sourceScheduleStatement  eos sourceItem* SEMICOL eos;
+sourceDefinition : SOURCE ID sourceScheduleStatement? LBRACE eos sourceItem* RBRACE eos
+                 | SOURCE ID sourceScheduleStatement? eos sourceItem* SEMICOL eos;
 sourceItem : statement
            ;
 
 
-sourceScheduleStatement : ;
+sourceScheduleStatement : AT LPAREN scheduleExpr RPAREN
+                         | EVERY LPAREN scheduleExpr RPAREN
+                         | CRON LPAREN STRING_L RPAREN
+                         ;
 //----------------------------------------------------------------------------
 // Events Section Structure
 eventsSection : EVENTS COL eos eventDefinition* ;
-eventDefinition : EVENT ID eventScheduleStatement LBRACE eos eventItem* RBRACE eos
-                | EVENT ID eventScheduleStatement eos eventItem* SEMICOL eos;
+eventDefinition : EVENT ID eventScheduleStatement? LBRACE eos eventItem* RBRACE eos
+                 | EVENT ID eventScheduleStatement? eos eventItem* SEMICOL eos;
 eventItem : statement
-          ;
+           ;
 
 
-eventScheduleStatement    : ;
+eventScheduleStatement    : AT LPAREN scheduleExpr RPAREN
+                          | EVERY LPAREN scheduleExpr RPAREN
+                          | CRON LPAREN STRING_L RPAREN
+                          ;
 //----------------------------------------------------------------------------
 // Observer Section Structure
 observersSection : OBSERVERS COL eos observerDefinition* ;
-observerDefinition : OBSERVER ID observerScheduleStatement LBRACE eos observerItem* RBRACE eos
-                   | OBSERVER ID observerScheduleStatement  eos observerItem* SEMICOL eos;
+observerDefinition : OBSERVER ID observerScheduleStatement? LBRACE eos observerItem* RBRACE eos
+                   | OBSERVER ID observerScheduleStatement? eos observerItem* SEMICOL eos;
 observerItem : statement
+              ;
+
+
+observerScheduleStatement : AT LPAREN scheduleExpr RPAREN
+                          | EVERY LPAREN scheduleExpr RPAREN
+                          | CRON LPAREN STRING_L RPAREN
+                          ;
+
+//----------------------------------------------------------------------------
+// Schedule Expression
+scheduleExpr : INT_L (MINUTES | HOURS | DAYS | WEEKS | SECONDS)
+             | STRING_L
              ;
-
-
-observerScheduleStatement : ;
 //----------------------------------------------------------------------------
 // Functions Section Structure
 functionsSection : FUNCTIONS COL eos functionDefinition* ;

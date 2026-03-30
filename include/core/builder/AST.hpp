@@ -27,6 +27,12 @@ class AssignmentNode;
 
 class UnaryOperatorNode;
 class BinaryOperatorNode;
+
+class IfStatementNode;
+class WhileStatementNode;
+class ForStatementNode;
+class ReturnStatementNode;
+class ScheduleNode;
 //############################## Visitor Interfacs #####################################
 class ASTVisitor {
 public:
@@ -54,6 +60,12 @@ public:
 
     virtual void visit(UnaryOperatorNode* node) = 0;
     virtual void visit(BinaryOperatorNode* node) = 0;
+
+    virtual void visit(IfStatementNode* node) = 0;
+    virtual void visit(WhileStatementNode* node) = 0;
+    virtual void visit(ForStatementNode* node) = 0;
+    virtual void visit(ReturnStatementNode* node) = 0;
+    virtual void visit(ScheduleNode* node) = 0;
 };
 //############################# AST Node Base Class ####################################
 class ASTNode {
@@ -132,8 +144,10 @@ public:
 class SourceDefinitionNode : public ASTNode {
 public:
     std::string sourceName;
+    std::shared_ptr<ASTNode> schedule;
     std::vector<std::shared_ptr<ASTNode>> statements;
-    SourceDefinitionNode(std::string name) : sourceName(std::move(name)) {}
+    SourceDefinitionNode(std::string name, std::shared_ptr<ASTNode> sched = nullptr) 
+        : sourceName(std::move(name)), schedule(std::move(sched)) {}
     void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 };
 
@@ -141,8 +155,10 @@ public:
 class EventDefinitionNode : public ASTNode {
 public:
     std::string eventName;
+    std::shared_ptr<ASTNode> schedule;
     std::vector<std::shared_ptr<ASTNode>> statements;
-    EventDefinitionNode(std::string name) : eventName(std::move(name)) {}
+    EventDefinitionNode(std::string name, std::shared_ptr<ASTNode> sched = nullptr) 
+        : eventName(std::move(name)), schedule(std::move(sched)) {}
     void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 };
 
@@ -150,8 +166,10 @@ public:
 class ObserverDefinitionNode : public ASTNode {
 public:
     std::string observerName;
+    std::shared_ptr<ASTNode> schedule;
     std::vector<std::shared_ptr<ASTNode>> statements;
-    ObserverDefinitionNode(std::string name) : observerName(std::move(name)) {}
+    ObserverDefinitionNode(std::string name, std::shared_ptr<ASTNode> sched = nullptr) 
+        : observerName(std::move(name)), schedule(std::move(sched)) {}
     void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 };
 
@@ -209,6 +227,74 @@ public:
     void accept(ASTVisitor* visitor) override { 
         visitor->visit(this); 
     }
+};
+
+//------------------------------- CONTROL FLOW NODES -----------------------------------
+
+class IfStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> condition;
+    std::vector<std::shared_ptr<ASTNode>> ifBody;
+    std::vector<std::shared_ptr<ASTNode>> elseBody;
+
+    IfStatementNode(std::shared_ptr<ASTNode> cond = nullptr, 
+                     std::vector<std::shared_ptr<ASTNode>> ifBlock = {},
+                     std::vector<std::shared_ptr<ASTNode>> elseBlock = {})
+        : condition(std::move(cond)), ifBody(std::move(ifBlock)), elseBody(std::move(elseBlock)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class WhileStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> condition;
+    std::vector<std::shared_ptr<ASTNode>> body;
+
+    WhileStatementNode(std::shared_ptr<ASTNode> cond = nullptr, std::vector<std::shared_ptr<ASTNode>> b = {})
+        : condition(std::move(cond)), body(std::move(b)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class ForStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> initialization;
+    std::shared_ptr<ASTNode> condition;
+    std::shared_ptr<ASTNode> increment;
+    std::vector<std::shared_ptr<ASTNode>> body;
+
+    ForStatementNode(std::shared_ptr<ASTNode> init = nullptr,
+                      std::shared_ptr<ASTNode> cond = nullptr,
+                      std::shared_ptr<ASTNode> inc = nullptr,
+                      std::vector<std::shared_ptr<ASTNode>> b = {})
+        : initialization(std::move(init)), condition(std::move(cond)), 
+          increment(std::move(inc)), body(std::move(b)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class ReturnStatementNode : public ASTNode {
+public:
+    std::shared_ptr<ASTNode> returnValue;
+
+    ReturnStatementNode(std::shared_ptr<ASTNode> val = nullptr) : returnValue(std::move(val)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+//------------------------------- SCHEDULE NODE -----------------------------------
+enum class ScheduleType { AT, EVERY, CRON };
+
+class ScheduleNode : public ASTNode {
+public:
+    ScheduleType type;
+    std::string value;
+    std::string unit;
+
+    ScheduleNode(ScheduleType t, std::string val, std::string u = "") 
+        : type(t), value(std::move(val)), unit(std::move(u)) {}
+
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 };
 
 //--------------------------------------------------------------------------------------

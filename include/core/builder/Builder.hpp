@@ -88,29 +88,111 @@ public:
 
     //##################################### Source Definitions  #######################################
     virtual antlrcpp::Any visitSourceDefinition(AMSParser::SourceDefinitionContext *ctx) override {
-        auto node = std::make_shared<SourceDefinitionNode>(ctx->ID()->getText());
+        std::shared_ptr<ASTNode> sched = nullptr;
+        if (ctx->sourceScheduleStatement()) {
+            sched = get_node<ASTNode>(visit(ctx->sourceScheduleStatement()));
+        }
+        auto node = std::make_shared<SourceDefinitionNode>(ctx->ID()->getText(), sched);
         for (auto* item : ctx->sourceItem()) {
             if (auto ptr = get_node<ASTNode>(visit(item))) node->statements.push_back(ptr);
         }
         return std::static_pointer_cast<ASTNode>(node);
     }
 
+    virtual antlrcpp::Any visitSourceScheduleStatement(AMSParser::SourceScheduleStatementContext *ctx) override {
+        if (ctx->AT()) {
+            auto expr = get_node<LiteralNode>(visit(ctx->scheduleExpr()));
+            std::string val = expr ? expr->value : "";
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::AT, val, ""));
+        }
+        if (ctx->EVERY()) {
+            auto expr = get_node<LiteralNode>(visit(ctx->scheduleExpr()));
+            std::string val = expr ? expr->value : "";
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::EVERY, val, ""));
+        }
+        if (ctx->CRON()) {
+            std::string cron = ctx->STRING_L()->getText();
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::CRON, cron.substr(1, cron.length()-2), ""));
+        }
+        return antlrcpp::Any();
+    }
+
     //##################################### Events Definitions  #######################################
     virtual antlrcpp::Any visitEventDefinition(AMSParser::EventDefinitionContext *ctx) override {
-        auto node = std::make_shared<EventDefinitionNode>(ctx->ID()->getText());
+        std::shared_ptr<ASTNode> sched = nullptr;
+        if (ctx->eventScheduleStatement()) {
+            sched = get_node<ASTNode>(visit(ctx->eventScheduleStatement()));
+        }
+        auto node = std::make_shared<EventDefinitionNode>(ctx->ID()->getText(), sched);
         for (auto* item : ctx->eventItem()) {
             if (auto ptr = get_node<ASTNode>(visit(item))) node->statements.push_back(ptr);
         }
         return std::static_pointer_cast<ASTNode>(node);
     }
 
+    virtual antlrcpp::Any visitEventScheduleStatement(AMSParser::EventScheduleStatementContext *ctx) override {
+        if (ctx->AT()) {
+            auto expr = get_node<LiteralNode>(visit(ctx->scheduleExpr()));
+            std::string val = expr ? expr->value : "";
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::AT, val, ""));
+        }
+        if (ctx->EVERY()) {
+            auto expr = get_node<LiteralNode>(visit(ctx->scheduleExpr()));
+            std::string val = expr ? expr->value : "";
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::EVERY, val, ""));
+        }
+        if (ctx->CRON()) {
+            std::string cron = ctx->STRING_L()->getText();
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::CRON, cron.substr(1, cron.length()-2), ""));
+        }
+        return antlrcpp::Any();
+    }
+
     //#################################### Observers Definitions  #####################################
     virtual antlrcpp::Any visitObserverDefinition(AMSParser::ObserverDefinitionContext *ctx) override {
-        auto node = std::make_shared<ObserverDefinitionNode>(ctx->ID()->getText());
+        std::shared_ptr<ASTNode> sched = nullptr;
+        if (ctx->observerScheduleStatement()) {
+            sched = get_node<ASTNode>(visit(ctx->observerScheduleStatement()));
+        }
+        auto node = std::make_shared<ObserverDefinitionNode>(ctx->ID()->getText(), sched);
         for (auto* item : ctx->observerItem()) {
             if (auto ptr = get_node<ASTNode>(visit(item))) node->statements.push_back(ptr);
         }
         return std::static_pointer_cast<ASTNode>(node);
+    }
+
+    virtual antlrcpp::Any visitObserverScheduleStatement(AMSParser::ObserverScheduleStatementContext *ctx) override {
+        if (ctx->AT()) {
+            auto expr = get_node<LiteralNode>(visit(ctx->scheduleExpr()));
+            std::string val = expr ? expr->value : "";
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::AT, val, ""));
+        }
+        if (ctx->EVERY()) {
+            auto expr = get_node<LiteralNode>(visit(ctx->scheduleExpr()));
+            std::string val = expr ? expr->value : "";
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::EVERY, val, ""));
+        }
+        if (ctx->CRON()) {
+            std::string cron = ctx->STRING_L()->getText();
+            return std::static_pointer_cast<ASTNode>(std::make_shared<ScheduleNode>(ScheduleType::CRON, cron.substr(1, cron.length()-2), ""));
+        }
+        return antlrcpp::Any();
+    }
+
+    virtual antlrcpp::Any visitScheduleExpr(AMSParser::ScheduleExprContext *ctx) override {
+        if (ctx->INT_L()) {
+            std::string unit = "";
+            if (ctx->MINUTES()) unit = "MINUTES";
+            else if (ctx->HOURS()) unit = "HOURS";
+            else if (ctx->DAYS()) unit = "DAYS";
+            else if (ctx->WEEKS()) unit = "WEEKS";
+            else if (ctx->SECONDS()) unit = "SECONDS";
+            return std::static_pointer_cast<ASTNode>(std::make_shared<LiteralNode>(ctx->INT_L()->getText() + " " + unit));
+        }
+        if (ctx->STRING_L()) {
+            return std::static_pointer_cast<ASTNode>(std::make_shared<LiteralNode>(ctx->STRING_L()->getText()));
+        }
+        return antlrcpp::Any();
     }
 
     //##################################### Function Definitions  #####################################
@@ -190,6 +272,10 @@ public:
         if (ctx->functionCall()) return visit(ctx->functionCall());
         if (ctx->variableDeclaration()) return visit(ctx->variableDeclaration());
         if (ctx->assignment()) return visit(ctx->assignment());
+        if (ctx->ifStatement()) return visit(ctx->ifStatement());
+        if (ctx->whileStatement()) return visit(ctx->whileStatement());
+        if (ctx->forStatement()) return visit(ctx->forStatement());
+        if (ctx->returnStatement()) return visit(ctx->returnStatement());
         return antlrcpp::Any();
     }
 
@@ -208,6 +294,32 @@ public:
         std::string name = ctx->ID()->getText();
         auto val = get_node<ASTNode>(visit(ctx->expression()));
         return std::static_pointer_cast<ASTNode>(std::make_shared<AssignmentNode>(name, val));
+    }
+
+    //##################################### Control Flow Statements  #################################
+    virtual antlrcpp::Any visitIfStatement(AMSParser::IfStatementContext *ctx) override {
+        auto condition = get_node<ASTNode>(visit(ctx->expression()));
+        return std::static_pointer_cast<ASTNode>(std::make_shared<IfStatementNode>(condition, std::vector<std::shared_ptr<ASTNode>>(), std::vector<std::shared_ptr<ASTNode>>()));
+    }
+
+    virtual antlrcpp::Any visitWhileStatement(AMSParser::WhileStatementContext *ctx) override {
+        auto condition = get_node<ASTNode>(visit(ctx->expression()));
+        return std::static_pointer_cast<ASTNode>(std::make_shared<WhileStatementNode>(condition, std::vector<std::shared_ptr<ASTNode>>()));
+    }
+
+    virtual antlrcpp::Any visitForStatement(AMSParser::ForStatementContext *ctx) override {
+        auto init = get_node<ASTNode>(visit(ctx->variableDeclaration()));
+        auto cond = get_node<ASTNode>(visit(ctx->expression()));
+        auto inc = get_node<ASTNode>(visit(ctx->assignment()));
+        return std::static_pointer_cast<ASTNode>(std::make_shared<ForStatementNode>(init, cond, inc, std::vector<std::shared_ptr<ASTNode>>()));
+    }
+
+    virtual antlrcpp::Any visitReturnStatement(AMSParser::ReturnStatementContext *ctx) override {
+        std::shared_ptr<ASTNode> retVal = nullptr;
+        if (ctx->expression()) {
+            retVal = get_node<ASTNode>(visit(ctx->expression()));
+        }
+        return std::static_pointer_cast<ASTNode>(std::make_shared<ReturnStatementNode>(retVal));
     }
 
     //##################################### Pass Through Visitors  ####################################

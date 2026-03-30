@@ -116,6 +116,9 @@ public:
     //####################################### Source Definations  ##########################################
     void visit(SourceDefinitionNode* node) override {
         out << "    // Source Block: " << normalize(node->sourceName) << "\n";
+        if (node->schedule) {
+            node->schedule->accept(this);
+        }
         for (const auto& item : node->statements) item->accept(this); 
     }
 
@@ -123,6 +126,9 @@ public:
     void visit(EventDefinitionNode* node) override {
         std::string name = normalize(node->eventName);
         out << "    // Event: " << name << "\n";
+        if (node->schedule) {
+            node->schedule->accept(this);
+        }
         out << "    auto EVENT_" << name << " = [&]() {\n";
         for (const auto& stmt : node->statements) stmt->accept(this); 
         out << "    };\n";
@@ -132,6 +138,10 @@ public:
     //####################################### Observer Definations  ########################################
     void visit(ObserverDefinitionNode* node) override {
         std::string name = normalize(node->observerName);
+        out << "    // Observer: " << name << "\n";
+        if (node->schedule) {
+            node->schedule->accept(this);
+        }
         out << "    auto OBSERVER_" << name << " = [&]() {\n"; // Use [&] to capture other functions
         for (const auto& stmt : node->statements) stmt->accept(this);
         out << "    };\n";
@@ -200,6 +210,7 @@ public:
         else if (op == "DIVIDE" || op == "/") op = "/";
         else if (op == "REMAINDER" || op == "%") op = "%";
         else if (op == "EQUALS" || op == "==") op = "==";
+        else if (op == "NOT EQUALS" || op == "!=") op = "!=";
         else if (op == "AND" || op == "&") op = "&&";
         else if (op == "OR" || op == "|") op = "||";
         else if (op.find("GREATER") != std::string::npos) {
@@ -212,6 +223,75 @@ public:
         out << " " << op << " ";
         node->right->accept(this);
         out << ")";
+    }
+
+    //####################################### Control Flow #############################################
+    void visit(IfStatementNode* node) override {
+        out << "        if (";
+        node->condition->accept(this);
+        out << ") {\n";
+        for (const auto& stmt : node->ifBody) {
+            stmt->accept(this);
+        }
+        out << "        }";
+        if (!node->elseBody.empty()) {
+            out << " else {\n";
+            for (const auto& stmt : node->elseBody) {
+                stmt->accept(this);
+            }
+            out << "        }";
+        }
+        out << "\n";
+    }
+
+    void visit(WhileStatementNode* node) override {
+        out << "        while (";
+        node->condition->accept(this);
+        out << ") {\n";
+        for (const auto& stmt : node->body) {
+            stmt->accept(this);
+        }
+        out << "        }\n";
+    }
+
+    void visit(ForStatementNode* node) override {
+        out << "        for (";
+        node->initialization->accept(this);
+        out << "; ";
+        node->condition->accept(this);
+        out << "; ";
+        node->increment->accept(this);
+        out << ") {\n";
+        for (const auto& stmt : node->body) {
+            stmt->accept(this);
+        }
+        out << "        }\n";
+    }
+
+    void visit(ReturnStatementNode* node) override {
+        out << "        return";
+        if (node->returnValue) {
+            out << " ";
+            node->returnValue->accept(this);
+        }
+        out << ";\n";
+    }
+
+    //####################################### Schedule Node #############################################
+    void visit(ScheduleNode* node) override {
+        out << "        // Schedule: ";
+        switch (node->type) {
+            case ScheduleType::AT:
+                out << "AT " << node->value;
+                break;
+            case ScheduleType::EVERY:
+                out << "EVERY " << node->value << " " << node->unit;
+                break;
+            case ScheduleType::CRON:
+                out << "CRON " << node->value;
+                break;
+        }
+        out << "\n";
     }
 
 private:
