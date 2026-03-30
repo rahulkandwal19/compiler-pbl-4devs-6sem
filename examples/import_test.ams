@@ -1,0 +1,6 @@
+GLOBAL:
+    IMPORT "math_utils"
+    MERGE "math_utils"
+    
+    INT main_value = 100
+    PRINTLN("Main program loaded!")

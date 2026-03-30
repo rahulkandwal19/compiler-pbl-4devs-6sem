@@ -71,7 +71,7 @@ int main(int argc, const char* argv[]) {
             std::string flag = "";
         #endif
 
-        Generator generator(tempCpp);
+        Generator generator(tempCpp, filePath);
         generator.generate(ast);
         generator.close();
 
