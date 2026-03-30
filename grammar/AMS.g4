@@ -26,6 +26,9 @@ FLOAT  : 'FLOAT';
 STRING : 'STRING';
 BOOL   : 'BOOL';
 VOID   : 'VOID';
+ARRAY  : 'ARRAY';
+LIST   : 'LIST';
+MAP    : 'MAP';
 
 // CONTROL FLOW
 IF     : 'IF';
@@ -36,6 +39,8 @@ RETURN : 'RETURN';
 //----------------------------------------------------------------------------
 LBRACE  : '{';
 RBRACE  : '}';
+LBRACKET: '[';
+RBRACKET: ']';
 LPAREN  : '(';
 RPAREN  : ')';
 EQUAL   : '=';
@@ -83,7 +88,7 @@ ID        : [A-Z_][A-Z0-9_]*;
 eos : SEMICOL?NL+ | EOF ; // END OF STATEMENT 
 
 // Data Types 
-dataType   : INT | FLOAT | STRING | BOOL | VOID ;
+dataType   : INT | FLOAT | STRING | BOOL | VOID | ARRAY | LIST | MAP ;
 //----------------------------------------------------------------------------
 // Program Sections 
 program 
@@ -131,7 +136,8 @@ expression
     | expression op=(EQ | NEQ) expression
     | expression op=AND expression
     | expression op=OR expression
-    | functionCall                             
+    | functionCall
+    | ID LBRACKET expression RBRACKET
     | ID                                      
     | STRING_L | INT_L | FLOAT_L | TRUE | FALSE
     ;

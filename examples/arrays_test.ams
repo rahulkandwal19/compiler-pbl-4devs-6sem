@@ -1,0 +1,4 @@
+GLOBAL:
+    ARRAY nums = 5
+    INT first = nums[0]
+    PRINTLN("Array test passed!")

@@ -26,9 +26,13 @@ public:
 
     //######################################### Code Generator #############################################
     void generate(std::shared_ptr<ProgramNode> program) {
-        out << "#include <iostream>\n#include <string>\n#include <functional>\n\n";
-        out << "#include <cmath>\n\n";
-        out << "#include \"include/stdlib/io/console.hpp\"\n\n";
+        out << "#include <iostream>\n#include <string>\n#include <functional>\n#include <vector>\n#include <map>\n\n";
+        out << "#include <cmath>\n#include <cstdlib>\n#include <ctime>\n\n";
+        out << "#include \"include/stdlib/io/console.hpp\"\n";
+        out << "#include \"include/stdlib/math.hpp\"\n";
+        out << "#include \"include/stdlib/string.hpp\"\n";
+        out << "#include \"include/stdlib/file.hpp\"\n";
+        out << "#include \"include/stdlib/collections.hpp\"\n\n";
         
         out << "int main() {\n";
         
@@ -76,6 +80,12 @@ public:
         out << node->name;
     }
 
+    void visit(ArrayAccessNode* node) override {
+        out << node->arrayName << "[";
+        if (node->index) node->index->accept(this);
+        out << "]";
+    }
+
     void visit(VariableDeclarationNode* node) override {
         // Map your DSL types to strict C++ types
         std::string cppType = "auto"; 
@@ -83,6 +93,9 @@ public:
         else if (node->dataType == "FLOAT") cppType = "double";
         else if (node->dataType == "STRING") cppType = "std::string";
         else if (node->dataType == "BOOL") cppType = "bool";
+        else if (node->dataType == "ARRAY") cppType = "Array<int>";
+        else if (node->dataType == "LIST") cppType = "List<int>";
+        else if (node->dataType == "MAP") cppType = "Map<std::string, int>";
 
         out << "        " << cppType << " " << node->varName;
         

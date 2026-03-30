@@ -21,6 +21,7 @@ class FunctionCallNode;
 
 class LiteralNode;
 class VariableNode;
+class ArrayAccessNode;
 
 class VariableDeclarationNode;
 class AssignmentNode;
@@ -53,6 +54,7 @@ public:
 
     virtual void visit(LiteralNode* node) = 0;
     virtual void visit(VariableNode* node) = 0;
+    virtual void visit(ArrayAccessNode* node) = 0;
 
     virtual void visit(VariableDeclarationNode* node) = 0;
     virtual void visit(AssignmentNode* node) = 0;
@@ -92,6 +94,17 @@ class VariableNode : public ASTNode {
 public:
     std::string name;
     VariableNode(std::string n) : name(std::move(n)) {}
+    void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+};
+
+class ArrayAccessNode : public ASTNode {
+public:
+    std::string arrayName;
+    std::shared_ptr<ASTNode> index;
+    
+    ArrayAccessNode(std::string name, std::shared_ptr<ASTNode> idx) 
+        : arrayName(std::move(name)), index(std::move(idx)) {}
+    
     void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 };
 
