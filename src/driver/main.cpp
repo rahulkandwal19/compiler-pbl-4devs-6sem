@@ -11,6 +11,7 @@
 #include "core/builder/AST.hpp"       
 #include "core/builder/Builder.hpp"
 #include "core/compiler/Generator.hpp" 
+#include "core/analysis/SemanticAnalyzer.hpp"
 
 
 using namespace antlr4;
@@ -57,6 +58,14 @@ int main(int argc, const char* argv[]) {
     Builder astBuilder;
     auto ast = std::any_cast<std::shared_ptr<ProgramNode>>(astBuilder.visit(parseTree));
 
+    // Run Semantic Analysis
+    SemanticAnalyzer semanticAnalyzer;
+    if (!semanticAnalyzer.analyze(ast)) {
+        std::cerr << "[SEMANTIC ANALYSIS FAILED]" << std::endl;
+        printSemanticErrors(semanticAnalyzer);
+        return 1;
+    }
+    std::cout << "[SEMANTIC ANALYSIS PASSED]" << std::endl;
   
     if (mode == "build") {
         //Compiled :  Produces an executable file
