@@ -116,6 +116,9 @@ public:
     //####################################### Source Definations  ##########################################
     void visit(SourceDefinitionNode* node) override {
         out << "    // Source Block: " << normalize(node->sourceName) << "\n";
+        if (node->schedule) {
+            node->schedule->accept(this);
+        }
         for (const auto& item : node->statements) item->accept(this); 
     }
 
@@ -123,6 +126,9 @@ public:
     void visit(EventDefinitionNode* node) override {
         std::string name = normalize(node->eventName);
         out << "    // Event: " << name << "\n";
+        if (node->schedule) {
+            node->schedule->accept(this);
+        }
         out << "    auto EVENT_" << name << " = [&]() {\n";
         for (const auto& stmt : node->statements) stmt->accept(this); 
         out << "    };\n";
@@ -132,6 +138,10 @@ public:
     //####################################### Observer Definations  ########################################
     void visit(ObserverDefinitionNode* node) override {
         std::string name = normalize(node->observerName);
+        out << "    // Observer: " << name << "\n";
+        if (node->schedule) {
+            node->schedule->accept(this);
+        }
         out << "    auto OBSERVER_" << name << " = [&]() {\n"; // Use [&] to capture other functions
         for (const auto& stmt : node->statements) stmt->accept(this);
         out << "    };\n";
@@ -265,6 +275,23 @@ public:
             node->returnValue->accept(this);
         }
         out << ";\n";
+    }
+
+    //####################################### Schedule Node #############################################
+    void visit(ScheduleNode* node) override {
+        out << "        // Schedule: ";
+        switch (node->type) {
+            case ScheduleType::AT:
+                out << "AT " << node->value;
+                break;
+            case ScheduleType::EVERY:
+                out << "EVERY " << node->value << " " << node->unit;
+                break;
+            case ScheduleType::CRON:
+                out << "CRON " << node->value;
+                break;
+        }
+        out << "\n";
     }
 
 private:
