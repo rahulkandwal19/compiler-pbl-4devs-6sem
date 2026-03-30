@@ -27,7 +27,8 @@ It processes `.ams` scripts into efficient high peformance deployable executable
 ## Use AutomonScript Language (AMS-Lang Engine)
 + View Available Execution Options
     ```powershell
-    ams 
+    ams lexer .\examples\hello_world.ams
+    ams parser .\examples\hello_world.ams
     ```
     ```
 + Builds AutomonScript Code in Compi
