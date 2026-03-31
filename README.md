@@ -29,6 +29,7 @@ It processes `.ams` scripts into efficient high peformance deployable executable
     ```powershell
     ams lexer .\examples\hello_world.ams
     ams parser .\examples\hello_world.ams
+    ams ast .\examples\hello_world.ams
     ```
     ```
 + Builds AutomonScript Code in Compi

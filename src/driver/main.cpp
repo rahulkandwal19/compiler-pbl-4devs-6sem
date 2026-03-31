@@ -16,6 +16,229 @@
 
 using namespace antlr4;
 
+namespace {
+    void printIndent(int level) {
+        std::cout << std::string(static_cast<size_t>(level) * 2, ' ');
+    }
+
+    const char* scheduleTypeToString(ScheduleType type) {
+        switch (type) {
+            case ScheduleType::AT: return "AT";
+            case ScheduleType::EVERY: return "EVERY";
+            case ScheduleType::CRON: return "CRON";
+            default: return "UNKNOWN";
+        }
+    }
+
+    void printAstNode(const std::shared_ptr<ASTNode>& node, int indent = 0) {
+        if (!node) {
+            printIndent(indent);
+            std::cout << "null" << std::endl;
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<ProgramNode>(node)) {
+            printIndent(indent);
+            std::cout << "ProgramNode" << std::endl;
+            for (const auto& block : n->programBlocks) {
+                printAstNode(block, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<GlobalSectionNode>(node)) {
+            printIndent(indent);
+            std::cout << "GlobalSectionNode" << std::endl;
+            for (const auto& stmt : n->statements) {
+                printAstNode(stmt, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<ImportNode>(node)) {
+            printIndent(indent);
+            std::cout << "ImportNode(module=\"" << n->moduleName << "\")" << std::endl;
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<MergeNode>(node)) {
+            printIndent(indent);
+            std::cout << "MergeNode(target=\"" << n->targetName << "\")" << std::endl;
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<SourceDefinitionNode>(node)) {
+            printIndent(indent);
+            std::cout << "SourceDefinitionNode(name=\"" << n->sourceName << "\")" << std::endl;
+            if (n->schedule) {
+                printIndent(indent + 1);
+                std::cout << "schedule:" << std::endl;
+                printAstNode(n->schedule, indent + 2);
+            }
+            for (const auto& stmt : n->statements) {
+                printAstNode(stmt, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<EventDefinitionNode>(node)) {
+            printIndent(indent);
+            std::cout << "EventDefinitionNode(name=\"" << n->eventName << "\")" << std::endl;
+            if (n->schedule) {
+                printIndent(indent + 1);
+                std::cout << "schedule:" << std::endl;
+                printAstNode(n->schedule, indent + 2);
+            }
+            for (const auto& stmt : n->statements) {
+                printAstNode(stmt, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<ObserverDefinitionNode>(node)) {
+            printIndent(indent);
+            std::cout << "ObserverDefinitionNode(name=\"" << n->observerName << "\")" << std::endl;
+            if (n->schedule) {
+                printIndent(indent + 1);
+                std::cout << "schedule:" << std::endl;
+                printAstNode(n->schedule, indent + 2);
+            }
+            for (const auto& stmt : n->statements) {
+                printAstNode(stmt, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<FunctionDefinitionNode>(node)) {
+            printIndent(indent);
+            std::cout << "FunctionDefinitionNode(name=\"" << n->functionName << "\", params=[";
+            for (size_t i = 0; i < n->parameters.size(); ++i) {
+                std::cout << n->parameters[i];
+                if (i + 1 < n->parameters.size()) std::cout << ", ";
+            }
+            std::cout << "])" << std::endl;
+            for (const auto& stmt : n->statements) {
+                printAstNode(stmt, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<FunctionCallNode>(node)) {
+            printIndent(indent);
+            std::cout << "FunctionCallNode(name=\"" << n->functionName << "\")" << std::endl;
+            for (const auto& arg : n->arguments) {
+                printAstNode(arg, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<LiteralNode>(node)) {
+            printIndent(indent);
+            std::cout << "LiteralNode(value=" << n->value << ")" << std::endl;
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<VariableNode>(node)) {
+            printIndent(indent);
+            std::cout << "VariableNode(name=" << n->name << ")" << std::endl;
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<VariableDeclarationNode>(node)) {
+            printIndent(indent);
+            std::cout << "VariableDeclarationNode(type=" << n->dataType << ", name=" << n->varName << ")" << std::endl;
+            if (n->value) {
+                printIndent(indent + 1);
+                std::cout << "value:" << std::endl;
+                printAstNode(n->value, indent + 2);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<AssignmentNode>(node)) {
+            printIndent(indent);
+            std::cout << "AssignmentNode(name=" << n->varName << ")" << std::endl;
+            printAstNode(n->expression, indent + 1);
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<UnaryOperatorNode>(node)) {
+            printIndent(indent);
+            std::cout << "UnaryOperatorNode(op=" << n->op << ")" << std::endl;
+            printAstNode(n->right, indent + 1);
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<BinaryOperatorNode>(node)) {
+            printIndent(indent);
+            std::cout << "BinaryOperatorNode(op=" << n->op << ")" << std::endl;
+            printIndent(indent + 1);
+            std::cout << "left:" << std::endl;
+            printAstNode(n->left, indent + 2);
+            printIndent(indent + 1);
+            std::cout << "right:" << std::endl;
+            printAstNode(n->right, indent + 2);
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<IfStatementNode>(node)) {
+            printIndent(indent);
+            std::cout << "IfStatementNode" << std::endl;
+            printIndent(indent + 1);
+            std::cout << "condition:" << std::endl;
+            printAstNode(n->condition, indent + 2);
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<WhileStatementNode>(node)) {
+            printIndent(indent);
+            std::cout << "WhileStatementNode" << std::endl;
+            printIndent(indent + 1);
+            std::cout << "condition:" << std::endl;
+            printAstNode(n->condition, indent + 2);
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<ForStatementNode>(node)) {
+            printIndent(indent);
+            std::cout << "ForStatementNode" << std::endl;
+            printIndent(indent + 1);
+            std::cout << "initialization:" << std::endl;
+            printAstNode(n->initialization, indent + 2);
+            printIndent(indent + 1);
+            std::cout << "condition:" << std::endl;
+            printAstNode(n->condition, indent + 2);
+            printIndent(indent + 1);
+            std::cout << "increment:" << std::endl;
+            printAstNode(n->increment, indent + 2);
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<ReturnStatementNode>(node)) {
+            printIndent(indent);
+            std::cout << "ReturnStatementNode" << std::endl;
+            if (n->returnValue) {
+                printAstNode(n->returnValue, indent + 1);
+            }
+            return;
+        }
+
+        if (auto n = std::dynamic_pointer_cast<ScheduleNode>(node)) {
+            printIndent(indent);
+            std::cout << "ScheduleNode(type=" << scheduleTypeToString(n->type)
+                      << ", value=" << n->value;
+            if (!n->unit.empty()) {
+                std::cout << ", unit=" << n->unit;
+            }
+            std::cout << ")" << std::endl;
+            return;
+        }
+
+        printIndent(indent);
+        std::cout << "UnknownNode" << std::endl;
+    }
+}
+
 int main(int argc, const char* argv[]) {
     // Help Verbose for the dempnstration of Usage Options Available in AMS-Lang Engine 
     if (argc < 3) {
@@ -25,6 +248,7 @@ int main(int argc, const char* argv[]) {
         std::cout << "**************** View AMS Engine Language Working ***********" << std::endl;
         std::cout << "ams lexer <file.ams> (View Tokens At LEXICAL ANALYSIS)" << std::endl;
         std::cout << "ams parser <file.ams> (View ParseTree At SYNTAX ANALYSIS)" << std::endl;
+        std::cout << "ams ast <file.ams> (View Abstract Syntax Tree)" << std::endl;
         return 1;
     }
 
@@ -95,7 +319,7 @@ int main(int argc, const char* argv[]) {
             std::cerr << "[ERROR] Compilation failed." << std::endl;
         }
     }
-    else if(mode=="lexer" || mode=="parser"){
+    else if(mode=="lexer" || mode=="parser" || mode=="ast"){
         if(mode == "lexer"){
             tokens.fill();
             for (auto token : tokens.getTokens()) {
@@ -107,10 +331,15 @@ int main(int argc, const char* argv[]) {
             std::cout << "Program Parse Tree: " << std::endl;
             std::cout << parseTree->toStringTree(&parser) << std::endl;
         }
+
+        else if (mode == "ast") {
+            std::cout << "Program AST: " << std::endl;
+            printAstNode(ast);
+        }
     }
     else {
         //Unknown Execution Mode : ERROR! Verbose
-        std::cerr << "Unknown mode: " << mode << ". Use 'build'." << std::endl;
+        std::cerr << "Unknown mode: " << mode << ". Use 'build', 'lexer', 'parser', or 'ast'." << std::endl;
         return 1;
     }
 
