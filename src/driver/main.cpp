@@ -244,7 +244,7 @@ int main(int argc, const char* argv[]) {
     if (argc < 3) {
         std::cout << "AutomonScript Language Engine Usage:" << std::endl<<std::endl;
         std::cout << "******************** Executing .ams Programes ***************" << std::endl;
-        std::cout << "ams build <file.ams> (Compile the Code to Executable)" << std::endl;
+        std::cout << "ams build <file.ams> [-o <output_path>] (Compile the Code to Executable)" << std::endl;
         std::cout << "**************** View AMS Engine Language Working ***********" << std::endl;
         std::cout << "ams lexer <file.ams> (View Tokens At LEXICAL ANALYSIS)" << std::endl;
         std::cout << "ams parser <file.ams> (View ParseTree At SYNTAX ANALYSIS)" << std::endl;
@@ -295,12 +295,29 @@ int main(int argc, const char* argv[]) {
         //Compiled :  Produces an executable file
         std::string tempCpp = "temp_output.cpp";
         std::filesystem::path exePath = inputPath;
+        bool useCustomOutput = false;
+
+        if (argc > 3) {
+            if (argc == 5 && std::string(argv[3]) == "-o") {
+                exePath = std::filesystem::path(argv[4]);
+                useCustomOutput = true;
+            } else {
+                std::cerr << "Invalid build options. Usage: ams build <file.ams> [-o <output_path>]" << std::endl;
+                return 1;
+            }
+        }
         
         #ifdef _WIN32
-            exePath.replace_extension(".exe");
+            if (!useCustomOutput) {
+                exePath.replace_extension(".exe");
+            } else if (exePath.extension().empty()) {
+                exePath += ".exe";
+            }
             std::string flag = " -mconsole";
         #elif __linux__
-            exePath.replace_extension("");
+            if (!useCustomOutput) {
+                exePath.replace_extension("");
+            }
             std::string flag = "";
         #endif
 

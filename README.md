@@ -36,5 +36,6 @@ It processes `.ams` scripts into efficient high peformance deployable executable
     ```powershell
     ams build .\examples\hello_world.ams
     .\examples\hello_world.exe   
+    ams build .\examples\hello_world.ams -o .\examples\custom_name.exe
     ```
 
