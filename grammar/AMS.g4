@@ -36,6 +36,10 @@ FLOAT  : 'FLOAT';
 STRING : 'STRING';
 BOOL   : 'BOOL';
 VOID   : 'VOID';
+ARRAY  : 'ARRAY';
+LIST   : 'LIST';
+MAP    : 'MAP';
+STRUCT : 'STRUCT';
 
 // CONTROL FLOW
 IF     : 'IF';
@@ -93,7 +97,7 @@ ID        : [A-Z_][A-Z0-9_]*;
 eos : SEMICOL?NL+ | EOF ; // END OF STATEMENT 
 
 // Data Types 
-dataType   : INT | FLOAT | STRING | BOOL | VOID ;
+dataType   : INT | FLOAT | STRING | BOOL | VOID | ARRAY | LIST | MAP | STRUCT ;
 //----------------------------------------------------------------------------
 // Program Sections 
 program 
