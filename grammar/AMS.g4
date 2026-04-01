@@ -16,16 +16,6 @@ OBSERVER  : 'OBSERVER';
 FUNCTIONS : 'FUNCTIONS';
 FUNCTION  : 'FUNCTION';
 
-// SCHEDULING
-AT      : 'AT';
-EVERY   : 'EVERY';
-CRON    : 'CRON';
-MINUTES : 'MINUTES';
-HOURS   : 'HOURS';
-DAYS    : 'DAYS';
-WEEKS   : 'WEEKS';
-SECONDS : 'SECONDS';
-
 // GLOBAL SECTION
 IMPORT : 'IMPORT';
 MERGE  : 'MERGE';
@@ -36,17 +26,11 @@ FLOAT  : 'FLOAT';
 STRING : 'STRING';
 BOOL   : 'BOOL';
 VOID   : 'VOID';
-ARRAY  : 'ARRAY';
-LIST   : 'LIST';
-MAP    : 'MAP';
-STRUCT : 'STRUCT';
 
-// CONTROL FLOW
-IF     : 'IF';
-ELSE   : 'ELSE';
-WHILE  : 'WHILE';
-FOR    : 'FOR';
-RETURN : 'RETURN';
+// Conditional Statements
+IF : 'IF';
+ELSE_IF : 'ELSE'[ \t\r]+'IF';
+ELSE : 'ELSE';
 //----------------------------------------------------------------------------
 LBRACE  : '{';
 RBRACE  : '}';
@@ -97,7 +81,7 @@ ID        : [A-Z_][A-Z0-9_]*;
 eos : SEMICOL?NL+ | EOF ; // END OF STATEMENT 
 
 // Data Types 
-dataType   : INT | FLOAT | STRING | BOOL | VOID | ARRAY | LIST | MAP | STRUCT ;
+dataType   : INT | FLOAT | STRING | BOOL | VOID ;
 //----------------------------------------------------------------------------
 // Program Sections 
 program 
@@ -115,23 +99,25 @@ statement
     : (variableDeclaration
       | assignment
       | functionCall
-      | ifStatement
-      | whileStatement
-      | forStatement
-      | returnStatement
       ) eos
+      | conditionalStatements eos?
     ;
 
 variableDeclaration : dataType ID (EQUAL expression)? ;
 assignment          : ID EQUAL expression ;
 
-// Control flow statements - embedded in statement list
-ifStatement        : IF expression ;
-whileStatement      : WHILE expression ;
-forStatement        : FOR LPAREN variableDeclaration SEMICOL expression SEMICOL assignment RPAREN ;
-returnStatement     : RETURN expression? ;
+conditionalStatements: IF LPAREN? expression RPAREN? NL* conditionalBlock 
+                        (NL* ELSE_IF LPAREN? expression RPAREN? NL* conditionalBlock )* 
+                        (NL* ELSE NL* conditionalBlock )? 
+                        ;
 
-arguments           : expression (COMMA expression)* ;
+conditionalBlock: LBRACE eos? statement* RBRACE 
+                | eos? statement* SEMICOL
+                | statement 
+                ;
+
+
+arguments : expression (COMMA expression)* ;
 //----------------------------------------------------------------------------
 // EXPRESSIONS 
 
@@ -164,48 +150,33 @@ mergeStatement  : MERGE STRING_L eos;
 //----------------------------------------------------------------------------
 // Sources Section Structure 
 sourcesSection : SOURCES COL eos sourceDefinition* ;
-sourceDefinition : SOURCE ID sourceScheduleStatement? LBRACE eos sourceItem* RBRACE eos
-                 | SOURCE ID sourceScheduleStatement? eos sourceItem* SEMICOL eos;
+sourceDefinition : SOURCE ID sourceScheduleStatement LBRACE eos sourceItem* RBRACE eos
+                 | SOURCE ID sourceScheduleStatement  eos sourceItem* SEMICOL eos;
 sourceItem : statement
            ;
 
 
-sourceScheduleStatement : AT LPAREN scheduleExpr RPAREN
-                         | EVERY LPAREN scheduleExpr RPAREN
-                         | CRON LPAREN STRING_L RPAREN
-                         ;
+sourceScheduleStatement : ;
 //----------------------------------------------------------------------------
 // Events Section Structure
 eventsSection : EVENTS COL eos eventDefinition* ;
-eventDefinition : EVENT ID eventScheduleStatement? LBRACE eos eventItem* RBRACE eos
-                 | EVENT ID eventScheduleStatement? eos eventItem* SEMICOL eos;
+eventDefinition : EVENT ID eventScheduleStatement LBRACE eos eventItem* RBRACE eos
+                | EVENT ID eventScheduleStatement eos eventItem* SEMICOL eos;
 eventItem : statement
-           ;
+          ;
 
 
-eventScheduleStatement    : AT LPAREN scheduleExpr RPAREN
-                          | EVERY LPAREN scheduleExpr RPAREN
-                          | CRON LPAREN STRING_L RPAREN
-                          ;
+eventScheduleStatement    : ;
 //----------------------------------------------------------------------------
 // Observer Section Structure
 observersSection : OBSERVERS COL eos observerDefinition* ;
-observerDefinition : OBSERVER ID observerScheduleStatement? LBRACE eos observerItem* RBRACE eos
-                   | OBSERVER ID observerScheduleStatement? eos observerItem* SEMICOL eos;
+observerDefinition : OBSERVER ID observerScheduleStatement LBRACE eos observerItem* RBRACE eos
+                   | OBSERVER ID observerScheduleStatement  eos observerItem* SEMICOL eos;
 observerItem : statement
-              ;
-
-
-observerScheduleStatement : AT LPAREN scheduleExpr RPAREN
-                          | EVERY LPAREN scheduleExpr RPAREN
-                          | CRON LPAREN STRING_L RPAREN
-                          ;
-
-//----------------------------------------------------------------------------
-// Schedule Expression
-scheduleExpr : INT_L (MINUTES | HOURS | DAYS | WEEKS | SECONDS)
-             | STRING_L
              ;
+
+
+observerScheduleStatement : ;
 //----------------------------------------------------------------------------
 // Functions Section Structure
 functionsSection : FUNCTIONS COL eos functionDefinition* ;
